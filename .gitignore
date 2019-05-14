@@ -36,4 +36,4 @@ newzjunky-*.tar
 /config/*.secret.exs
 
 # currently used for apikey and url - will be moved.
-/lib/newzjunky/config.exs
+/lib/newzjunky/config.ex
