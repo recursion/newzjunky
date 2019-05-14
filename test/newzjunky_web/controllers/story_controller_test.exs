@@ -5,26 +5,22 @@ defmodule NewzjunkyWeb.StoryControllerTest do
   alias Newzjunky.Stories.Story
 
   @create_attrs %{
-    author: "some author",
     content: "some content",
     description: "some description",
     publishedAt: "2010-04-17T14:00:00Z",
-    source: "some source",
     title: "some title",
     url: "some url",
     urlToImage: "some urlToImage"
   }
   @update_attrs %{
-    author: "some updated author",
     content: "some updated content",
     description: "some updated description",
     publishedAt: "2011-05-18T15:01:01Z",
-    source: "some updated source",
     title: "some updated title",
     url: "some updated url",
     urlToImage: "some updated urlToImage"
   }
-  @invalid_attrs %{author: nil, content: nil, description: nil, publishedAt: nil, source: nil, title: nil, url: nil, urlToImage: nil}
+  @invalid_attrs %{content: nil, description: nil, publishedAt: nil, title: nil, url: nil, urlToImage: nil}
 
   def fixture(:story) do
     {:ok, story} = Stories.create_story(@create_attrs)
@@ -51,11 +47,9 @@ defmodule NewzjunkyWeb.StoryControllerTest do
 
       assert %{
                "id" => id,
-               "author" => "some author",
                "content" => "some content",
                "description" => "some description",
                "publishedAt" => "2010-04-17T14:00:00Z",
-               "source" => "some source",
                "title" => "some title",
                "url" => "some url",
                "urlToImage" => "some urlToImage"
@@ -79,11 +73,9 @@ defmodule NewzjunkyWeb.StoryControllerTest do
 
       assert %{
                "id" => id,
-               "author" => "some updated author",
                "content" => "some updated content",
                "description" => "some updated description",
                "publishedAt" => "2011-05-18T15:01:01Z",
-               "source" => "some updated source",
                "title" => "some updated title",
                "url" => "some updated url",
                "urlToImage" => "some updated urlToImage"

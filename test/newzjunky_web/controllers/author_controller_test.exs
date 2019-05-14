@@ -1,8 +1,8 @@
 defmodule NewzjunkyWeb.AuthorControllerTest do
   use NewzjunkyWeb.ConnCase
 
-  alias Newzjunky.Articles
-  alias Newzjunky.Articles.Author
+  alias Newzjunky.Stories
+  alias Newzjunky.Stories.Author
 
   @create_attrs %{
     name: "some name"
@@ -13,7 +13,7 @@ defmodule NewzjunkyWeb.AuthorControllerTest do
   @invalid_attrs %{name: nil}
 
   def fixture(:author) do
-    {:ok, author} = Articles.create_author(@create_attrs)
+    {:ok, author} = Stories.create_author(@create_attrs)
     author
   end
 
