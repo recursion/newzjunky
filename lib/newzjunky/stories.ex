@@ -3,6 +3,7 @@ defmodule Newzjunky.Stories do
   The Stories context.
   """
 
+  require Logger
   import Ecto.Query, warn: false
   alias Newzjunky.Repo
 
@@ -146,9 +147,35 @@ defmodule Newzjunky.Stories do
 
   """
   def create_story(attrs \\ %{}) do
-    %Story{}
-    |> Story.changeset(attrs)
-    |> Repo.insert()
+    author = attrs["author"]
+    {:ok, dt, _} = DateTime.from_iso8601(attrs["publishedAt"])
+    story = %Story{
+      title: attrs["title"],
+      description: attrs["description"],
+      content: attrs["content"],
+      url: attrs["url"],
+      urlToImage: attrs["urlToImage"],
+      publishedAt: dt
+    }
+    
+    # if the story (by URL) already exists, we dont need to add it
+    case Repo.get_by(Story, url: attrs["url"]) do
+      nil -> 
+        Logger.info("Retrieval was nil.")
+        # if author is not null
+        if author do
+          # get or insert author
+          Repo.get_by(Author, name: author) || Repo.insert!(%Author{name: author})
+          |> Ecto.build_assoc(:stories, story)
+          |> Repo.insert()
+        else
+          # when no author - build story without author or association
+          story
+          |> Repo.insert()
+        end
+      story ->
+        story
+    end
   end
 
   @doc """
