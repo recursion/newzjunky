@@ -1,17 +1,18 @@
 defmodule Newzjunky.Stories.Story do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Newzjunky.Stories.Author
+  alias Newzjunky.Stories.{Author, Url}
 
   schema "stories" do
     field :content, :string
     field :description, :string
     field :publishedAt, :utc_datetime
     field :title, :string
-    field :url, :string
     field :urlToImage, :string
     # field :author_id, :id
+    #field :url, :string
     belongs_to :author, Author
+    belongs_to :url, Url
 
     timestamps()
   end
@@ -19,8 +20,7 @@ defmodule Newzjunky.Stories.Story do
   @doc false
   def changeset(story, attrs) do
     story
-    |> cast(attrs, [:title, :description, :content, :url, :urlToImage, :publishedAt])
-    |> validate_required([:title, :description, :content, :url, :urlToImage, :publishedAt])
-    |> unique_constraint(:url)
+    |> cast(attrs, [:title, :description, :content, :urlToImage, :publishedAt])
+    |> validate_required([:title, :description, :content, :urlToImage, :publishedAt])
   end
 end

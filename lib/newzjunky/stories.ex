@@ -7,7 +7,7 @@ defmodule Newzjunky.Stories do
   import Ecto.Query, warn: false
   alias Newzjunky.Repo
 
-  alias Newzjunky.Stories.Author
+  alias Newzjunky.Stories.{Story, Author, Url}
 
   @doc """
   Returns the list of authors.
@@ -103,7 +103,6 @@ defmodule Newzjunky.Stories do
     Author.changeset(author, %{})
   end
 
-  alias Newzjunky.Stories.Story
 
   @doc """
   Returns the list of stories.
@@ -148,33 +147,48 @@ defmodule Newzjunky.Stories do
   """
   def create_story(attrs \\ %{}) do
     author = attrs["author"]
+    url = attrs["url"]
     {:ok, dt, _} = DateTime.from_iso8601(attrs["publishedAt"])
     story = %Story{
       title: attrs["title"],
       description: attrs["description"],
       content: attrs["content"],
-      url: attrs["url"],
       urlToImage: attrs["urlToImage"],
       publishedAt: dt
     }
     
-    # if the story (by URL) already exists, we dont need to add it
-    case Repo.get_by(Story, url: attrs["url"]) do
-      nil -> 
-        Logger.info("Retrieval was nil.")
-        # if author is not null
-        if author do
-          # get or insert author
-          Repo.get_by(Author, name: author) || Repo.insert!(%Author{name: author})
-          |> Ecto.build_assoc(:stories, story)
-          |> Repo.insert()
-        else
-          # when no author - build story without author or association
+    if url do
+      url = 
+        # get or insert url
+        Repo.get_by(Url, address: url) || Repo.insert!(%Url{address: url})
+        |> Ecto.build_assoc(:stories, story)
+        |> Repo.insert()
+
+
+      story = Repo.one from story in Story,
+        where: story.id == ^url.id
+
+      # if the story (by URL) already exists, we dont need to add it
+      case story do
+        nil -> 
+          Logger.info("Retrieval was nil.")
+          # if author is not null
+          if author do
+            # get or insert author
+            Repo.get_by(Author, name: author) || Repo.insert!(%Author{name: author})
+            |> Ecto.build_assoc(:stories, story)
+            |> Repo.insert()
+          else
+            # when no author - build story without author or association
+            story
+            |> Repo.insert()
+          end
+        story ->
           story
-          |> Repo.insert()
-        end
-      story ->
-        story
+      end
+    else
+      Logger.info('Could not create story.')
+      Logger.info('Unhandled URL Exception: #{inspect url}')
     end
   end
 
@@ -223,5 +237,101 @@ defmodule Newzjunky.Stories do
   """
   def change_story(%Story{} = story) do
     Story.changeset(story, %{})
+  end
+
+  alias Newzjunky.Stories.Url
+
+  @doc """
+  Returns the list of urls.
+
+  ## Examples
+
+      iex> list_urls()
+      [%Url{}, ...]
+
+  """
+  def list_urls do
+    Repo.all(Url)
+  end
+
+  @doc """
+  Gets a single url.
+
+  Raises `Ecto.NoResultsError` if the Url does not exist.
+
+  ## Examples
+
+      iex> get_url!(123)
+      %Url{}
+
+      iex> get_url!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_url!(id), do: Repo.get!(Url, id)
+
+  @doc """
+  Creates a url.
+
+  ## Examples
+
+      iex> create_url(%{field: value})
+      {:ok, %Url{}}
+
+      iex> create_url(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_url(attrs \\ %{}) do
+    %Url{}
+    |> Url.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a url.
+
+  ## Examples
+
+      iex> update_url(url, %{field: new_value})
+      {:ok, %Url{}}
+
+      iex> update_url(url, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_url(%Url{} = url, attrs) do
+    url
+    |> Url.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Url.
+
+  ## Examples
+
+      iex> delete_url(url)
+      {:ok, %Url{}}
+
+      iex> delete_url(url)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_url(%Url{} = url) do
+    Repo.delete(url)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking url changes.
+
+  ## Examples
+
+      iex> change_url(url)
+      %Ecto.Changeset{source: %Url{}}
+
+  """
+  def change_url(%Url{} = url) do
+    Url.changeset(url, %{})
   end
 end
