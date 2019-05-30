@@ -134,6 +134,31 @@ defmodule Newzjunky.Stories do
   """
   def get_story!(id), do: Repo.get!(Story, id)
 
+  
+  @doc """
+  Fetches and decodes top stories from the given address
+  TODO: take in a url and fetch that instead of something hard coded
+  Returns a list of stories
+  """
+  def fetch_stories do
+    HTTPoison.start()
+    r = HTTPoison.get!(Newzjunky.Config.url())
+    body = Jason.decode!(r.body)
+
+    body["articles"]
+  end
+
+  @doc """
+  Insert a list of stories into the database
+  """
+  def insert_stories(stories) do
+    stories
+    |> Enum.each fn s ->
+      Newzjunky.Stories.create_story(s)
+      {:ok}
+    end
+  end
+
   @doc """
   Creates a story.
 

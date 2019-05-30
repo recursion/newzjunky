@@ -27,25 +27,6 @@ defmodule Newzjunky.Application do
 
       render(conn, "index.json", stories: stories)
   """
-  def get_stories do
-    HTTPoison.start()
-    r = HTTPoison.get!(Newzjunky.Config.url())
-    body = Jason.decode!(r.body)
-
-    body["articles"]
-  end
-
-  def get_first_story do
-    hd(get_stories())
-  end
-
-  def load_stories do
-    get_stories()
-    |> Enum.each fn s ->
-      Newzjunky.Stories.create_story(s)
-      {:ok}
-    end
-  end
 
   def start(_type, _args) do
     # List all child processes to be supervised
