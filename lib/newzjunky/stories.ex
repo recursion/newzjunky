@@ -115,6 +115,7 @@ defmodule Newzjunky.Stories do
   """
   def list_stories do
     Repo.all(Story)
+    |> Repo.preload([:url, :author])
   end
 
   @doc """
@@ -148,7 +149,16 @@ defmodule Newzjunky.Stories do
   def create_story(attrs \\ %{}) do
     author = attrs["author"]
     url = attrs["url"]
-    {:ok, dt, _} = DateTime.from_iso8601(attrs["publishedAt"])
+    dt =
+      case attrs["publishedAt"] do
+        nil -> 
+          {:ok, dt} = DateTime.now("Etc/UTC")
+            dt
+        _ -> 
+          {:ok, dt, _} = DateTime.from_iso8601(attrs["publishedAt"])
+          dt
+      end
+
     story = %Story{
       title: attrs["title"],
       description: attrs["description"],
@@ -156,39 +166,44 @@ defmodule Newzjunky.Stories do
       urlToImage: attrs["urlToImage"],
       publishedAt: dt
     }
+
     
     if url do
-      url = 
+      url =
         # get or insert url
-        Repo.get_by(Url, address: url) || Repo.insert!(%Url{address: url})
+        case Repo.get_by(Url, address: url) || Repo.insert!(%Url{address: url})
+        |> Ecto.build_assoc(:stories, story)
+        |> Repo.insert() do
+          {:ok, url} -> url
+          url -> url
+        end
+
+      if author do
+        # get or insert author
+        Repo.get_by(Author, name: author) || Repo.insert!(%Author{name: author})
         |> Ecto.build_assoc(:stories, story)
         |> Repo.insert()
+      end
 
 
-      story = Repo.one from story in Story,
-        where: story.id == ^url.id
+      existing_story = Repo.one from story in Story,
+        where: story.url_id == ^url.id
+      
 
-      # if the story (by URL) already exists, we dont need to add it
-      case story do
+      # if the story already exists, we dont need to add it
+      case existing_story do
         nil -> 
-          Logger.info("Retrieval was nil.")
-          # if author is not null
-          if author do
-            # get or insert author
-            Repo.get_by(Author, name: author) || Repo.insert!(%Author{name: author})
-            |> Ecto.build_assoc(:stories, story)
+          story
             |> Repo.insert()
-          else
-            # when no author - build story without author or association
-            story
-            |> Repo.insert()
-          end
+        {:ok, story} -> story
         story ->
           story
       end
+
     else
       Logger.info('Could not create story.')
       Logger.info('Unhandled URL Exception: #{inspect url}')
+      {:error, 'Nil url'}
     end
   end
 

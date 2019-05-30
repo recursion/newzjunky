@@ -4,6 +4,7 @@ defmodule Newzjunky.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @doc """
       Logger.info("Populating stories")
@@ -36,6 +37,14 @@ defmodule Newzjunky.Application do
 
   def get_first_story do
     hd(get_stories())
+  end
+
+  def load_stories do
+    get_stories()
+    |> Enum.each fn s ->
+      Newzjunky.Stories.create_story(s)
+      {:ok}
+    end
   end
 
   def start(_type, _args) do
