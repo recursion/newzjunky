@@ -174,13 +174,14 @@ defmodule Newzjunky.Stories do
   def create_story(attrs \\ %{}) do
     author = attrs["author"]
     url = attrs["url"]
+    publishedAt = attrs["publishedAt"]
     dt =
-      case attrs["publishedAt"] do
+      case publishedAt do
         nil -> 
           {:ok, dt} = DateTime.now("Etc/UTC")
             dt
         _ -> 
-          {:ok, dt, _} = DateTime.from_iso8601(attrs["publishedAt"])
+          {:ok, dt, _} = DateTime.from_iso8601(publishedAt)
           dt
       end
 
@@ -193,7 +194,7 @@ defmodule Newzjunky.Stories do
     }
 
     
-    if url do
+    if url !== nil and url !== "" do
       url =
         # get or insert url
         case Repo.get_by(Url, address: url) || Repo.insert!(%Url{address: url})
